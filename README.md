@@ -1,7 +1,34 @@
 command to run the aiservices:- uvicorn main:app --reload
 
+for aiservices :-
+1. make env first:- 
+    python -m venv venv
+    source venv\Scripts\activate
+
+and then:-
+ run uvicorn main:app --reload
 and go to :- http://127.0.0.1:8000/docs
 
+
+
+in backend:-
+tsconfig.json should be something like:-
+{
+  "compilerOptions": {
+
+    "target": "ES2020",
+
+    "module": "commonjs",
+
+    "moduleResolution": "node",
+
+    "esModuleInterop": true,
+
+    "strict": true,
+
+    "skipLibCheck": true
+  }
+}
 
 # AI-Powered Sentiment & Emotion Analysis Platform
 

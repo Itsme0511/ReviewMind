@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
-import analyzeYouTubeVideo from "../services/ai.service";
+import {analyzeYouTubeVideo, analyzeTextAI} from "../services/ai.service";
 import Analysis from "../models/analysis.model";
 import type {AuthRequest} from "../middleware/auth.middleware";
+
 
 interface AnalyzeRequestBody {
   url: string;
@@ -117,5 +118,42 @@ export const getAnalysisById = async (
     });
   }
 };
+
+export const analyzeText = async (
+
+  req: AuthRequest,
+
+  res: Response
+
+) => {
+
+  try {
+
+    const { text } = req.body;
+
+    if (!text) {
+
+      return res.status(400).json({
+
+        error: "Text is required"
+      });
+    }
+
+    const result =
+
+      await analyzeTextAI(text);
+
+    return res.json(result);
+
+  } catch (error: any) {
+
+    return res.status(500).json({
+
+      error: error.message
+    });
+  }
+};
+
+
 
 export { analyzeYouTube };

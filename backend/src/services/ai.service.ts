@@ -1,9 +1,9 @@
 import axios from "axios";
 // const axios = require("axios");
 
-const AI_BASE_URL = "http://127.0.0.1:8000";
+const AI_BASE_URL = process.env.AI_SERVICE_URL;
 
-const analyzeYouTubeVideo = async (
+export const analyzeYouTubeVideo = async (
   url: string,
   maxComments: number = 100
 ) => {
@@ -22,12 +22,44 @@ const analyzeYouTubeVideo = async (
 
   } catch (error: any) {
 
-    console.error("AI Service Error:", error.message);
+    console.error(
+      "AI Service Error:",
+      error.response?.data ||
+      error.message
+    );
 
     throw new Error(
+
+      error.response?.data?.detail ||
+
       "Failed to communicate with AI service"
     );
-  }
-};
+}
+}
 
-export default analyzeYouTubeVideo;
+export const analyzeTextAI = async (
+
+  text: string
+
+) => {
+
+  try {
+
+    const response = await axios.post(
+
+      `${AI_BASE_URL}/analyze-text`,
+
+      { text }
+    );
+
+    return response.data;
+
+  } catch (error: any) {
+
+    throw new Error(
+
+      error.response?.data?.detail ||
+
+      "Failed to communicate with AI service"
+    );
+}}

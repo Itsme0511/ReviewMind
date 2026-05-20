@@ -156,6 +156,51 @@ def analyze_batch(data: BatchInput):
         "sentiment": sentiment
     }
 
+@app.post("/analyze-text")
+def analyze_text(data: dict):
+
+    text = data.get("text")
+
+    if not text:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Text is required"
+        )
+    cleaned_text = preprocess_text(text)
+
+    result = classifier(cleaned_text)[0]
+
+    sorted_result = sorted(
+        result,
+        key=lambda x: x["score"],
+        reverse=True
+    )
+
+    top_emotion = sorted_result[0]
+
+    emotion = top_emotion["label"]
+
+    sentiment = sentiment_map.get(
+        emotion,
+        "neutral"
+    )
+
+    return {
+
+        "text": text,
+
+        "emotion": emotion,
+
+        "emotion_score": round(
+            top_emotion["score"],
+            4
+        ),
+
+        "sentiment": sentiment,
+
+        "all_emotions": sorted_result
+    }
 
 @app.post("/analyze-youtube")
 def analyze_youtube(data: YouTubeInput):
@@ -167,11 +212,12 @@ def analyze_youtube(data: YouTubeInput):
             max_comments=data.max_comments
         )
 
+
         if not comments:
             raise HTTPException(
                 status_code=404,
-                detail="No comments found for this video"
-            )
+                detail="This video has no public comments available."
+            )   
 
         cleaned_comments = [
             preprocess_text(comment)
@@ -276,12 +322,16 @@ def analyze_youtube(data: YouTubeInput):
             "comments": analyzed_comments
         }
 
-    except ValueError as e:
+    except ValueError:
 
         raise HTTPException(
             status_code=400,
-            detail=str(e)
-        )
+            detail="Invalid YouTube URL"
+        ) 
+    
+    except HTTPException as e:
+
+        raise e
 
     except Exception as e:
 

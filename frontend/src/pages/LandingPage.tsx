@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import FeatureCard from "../components/FeatureCard";
 
 function LandingPage() {
+    const token = localStorage.getItem("token");
 
   return (
 
@@ -13,9 +14,9 @@ function LandingPage() {
 
       {/* HERO SECTION */}
 
-      <section className="max-w-7xl mx-auto px-8 py-28 text-center">
+      <section className="max-w-7xl mx-auto px-5 md:px-8 py-20 md:py-28 text-center">
 
-        <h1 className="text-6xl md:text-7xl font-bold leading-tight">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight">
 
           AI-Powered
 
@@ -27,7 +28,7 @@ function LandingPage() {
 
         </h1>
 
-        <p className="text-gray-400 text-xl max-w-3xl mx-auto mt-8 leading-relaxed">
+        <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto mt-8 leading-relaxed">
 
           Analyze YouTube comments and text using advanced AI models.
 
@@ -35,7 +36,7 @@ function LandingPage() {
 
         </p>
 
-        <div className="flex items-center justify-center gap-6 mt-12">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 mt-12">
 
           <Link
             to="/analyze"
@@ -45,7 +46,7 @@ function LandingPage() {
           </Link>
 
           <Link
-            to="/signup"
+            to={token ? "/analyze" : "/signup"}
             className="border border-gray-700 px-8 py-4 rounded-xl font-semibold text-lg hover:border-gray-500 transition"
           >
             Get Started

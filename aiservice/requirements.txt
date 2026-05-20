@@ -2,7 +2,8 @@ fastapi==0.136.1
 uvicorn==0.46.0
 
 transformers==4.52.4
-torch==2.11.0
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 tokenizers==0.21.4
 huggingface_hub==0.36.2
 safetensors==0.7.0

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import {analyzeYouTubeVideo, analyzeTextAI} from "../services/ai.service";
+import {analyzeYouTubeVideo, analyzeTextAI,analyzeAmazonProduct} from "../services/ai.service";
 import Analysis from "../models/analysis.model";
 import type {AuthRequest} from "../middleware/auth.middleware";
 
@@ -9,7 +9,7 @@ interface AnalyzeRequestBody {
   maxComments?: number;
 }
 
-const analyzeYouTube = async (
+export const analyzeYouTube = async (
   req: AuthRequest,
   res: Response
 ) => {
@@ -155,5 +155,75 @@ export const analyzeText = async (
 };
 
 
+export const analyzeAmazon = async (
 
-export { analyzeYouTube };
+  req: AuthRequest,
+
+  res: Response
+
+) => {
+
+  try {
+
+    const { url } = req.body;
+
+    if (!url) {
+
+      return res.status(400).json({
+
+        error: "Amazon product URL is required"
+      });
+    }
+
+    const result = await analyzeAmazonProduct(
+      url
+    );
+
+    const savedAnalysis =
+
+      await Analysis.create({
+
+        userId: req.user.userId,
+
+        videoUrl: url,
+
+        totalComments:
+          result.total_reviews,
+
+        emotionDistribution:
+          result.emotion_distribution,
+
+        sentimentDistribution:
+          result.sentiment_distribution,
+
+        topPositiveComment:
+          result.top_positive_review,
+
+        topNegativeComment:
+          result.top_negative_review,
+
+        aiSummary:
+          result.ai_summary
+      });
+
+    return res.json({
+
+      message:
+        "Amazon analysis completed successfully",
+
+      analysis: savedAnalysis,
+
+      aiResult: result
+    });
+
+  } catch (error: any) {
+
+    return res.status(500).json({
+
+      error:
+        error.message ||
+
+        "Amazon analysis failed"
+    });
+  }
+};

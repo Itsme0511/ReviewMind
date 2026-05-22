@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import pipeline
 from youtube_service import get_youtube_comments
+from amazon_service import (get_amazon_reviews)
 from fastapi import HTTPException
 import emoji
 
@@ -25,6 +26,9 @@ class BatchInput(BaseModel):
 class YouTubeInput(BaseModel):
     url: str
     max_comments: int = 100
+
+class AmazonInput(BaseModel):
+    url: str
 
 classifier = pipeline(
     "text-classification",
@@ -337,5 +341,195 @@ def analyze_youtube(data: YouTubeInput):
 
         raise HTTPException(
             status_code=500,
+            detail=f"Server Error: {str(e)}"
+        )
+
+@app.post("/analyze-amazon")
+
+def analyze_amazon(data: AmazonInput):
+
+    try:
+
+        reviews = get_amazon_reviews(
+            data.url
+        )
+
+        if not reviews:
+
+            raise HTTPException(
+                status_code=404,
+                detail="No Amazon reviews found."
+            )
+
+        cleaned_reviews = [
+
+            preprocess_text(review)
+
+            for review in reviews
+        ]
+
+        results = classifier(
+            cleaned_reviews
+        )
+
+        analyzed_reviews = []
+
+        emotion_counts = {}
+
+        sentiment_counts = {
+
+            "positive": 0,
+
+            "negative": 0,
+
+            "neutral": 0
+        }
+
+        positive_reviews = []
+
+        negative_reviews = []
+
+        for review, prediction in zip(
+
+            reviews,
+
+            results
+        ):
+
+            sorted_result = sorted(
+
+                prediction,
+
+                key=lambda x: x["score"],
+
+                reverse=True
+            )
+
+            top_emotion = sorted_result[0]
+
+            emotion = top_emotion["label"]
+
+            sentiment = sentiment_map.get(
+
+                emotion,
+
+                "neutral"
+            )
+
+            if sentiment == "positive":
+
+                positive_reviews.append({
+
+                    "review": review,
+
+                    "confidence": top_emotion["score"]
+                })
+
+            elif sentiment == "negative":
+
+                negative_reviews.append({
+
+                    "review": review,
+
+                    "confidence": top_emotion["score"]
+                })
+
+            emotion_counts[emotion] = (
+
+                emotion_counts.get(
+                    emotion,
+                    0
+                ) + 1
+            )
+
+            sentiment_counts[sentiment] += 1
+
+            analyzed_reviews.append({
+
+                "review": review,
+
+                "emotion": emotion,
+
+                "sentiment": sentiment,
+
+                "confidence": round(
+                    top_emotion["score"],
+                    4
+                )
+            })
+
+        top_positive_review = None
+
+        top_negative_review = None
+
+        if positive_reviews:
+
+            top_positive_review = max(
+
+                positive_reviews,
+
+                key=lambda x: x["confidence"]
+
+            )["review"]
+
+        if negative_reviews:
+
+            top_negative_review = max(
+
+                negative_reviews,
+
+                key=lambda x: x["confidence"]
+
+            )["review"]
+
+        emotion_percentages = {}
+
+        for emotion, count in emotion_counts.items():
+
+            emotion_percentages[emotion] = {
+
+                "count": count,
+
+                "percentage": round(
+
+                    (count / len(reviews)) * 100,
+
+                    2
+                )
+            }
+
+        summary = generate_summary(
+            reviews
+        )
+
+        return {
+
+            "total_reviews": len(reviews),
+
+            "emotion_distribution": emotion_counts,
+
+            "emotion_percentages": emotion_percentages,
+
+            "sentiment_distribution": sentiment_counts,
+
+            "top_positive_review": top_positive_review,
+
+            "top_negative_review": top_negative_review,
+
+            "ai_summary": summary,
+
+            "reviews": analyzed_reviews
+        }
+
+    except HTTPException as e:
+
+        raise e
+
+    except Exception as e:
+
+        raise HTTPException(
+
+            status_code=500,
+
             detail=f"Server Error: {str(e)}"
         )

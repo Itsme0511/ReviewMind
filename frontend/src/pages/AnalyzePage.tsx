@@ -15,6 +15,10 @@ function AnalyzePage() {
   const [youtubeUrl, setYoutubeUrl] =
 
     useState("");
+  
+  const [amazonUrl, setAmazonUrl] =
+
+    useState("");
 
   const [text, setText] =
 
@@ -108,6 +112,7 @@ function AnalyzePage() {
       setLoading(false);
     }
   };
+
   const handleTextAnalysis = async () => {
 
     try {
@@ -153,6 +158,86 @@ function AnalyzePage() {
     }
     };
 
+  const handleAmazonAnalysis = async () => {
+
+    try {
+
+      setLoading(true);
+
+      setError("");
+
+      setLoadingStep(
+        "Fetching Amazon reviews..."
+      );
+
+      const token =
+        localStorage.getItem("token");
+
+      await new Promise(
+
+        resolve => setTimeout(
+          resolve,
+          700
+        )
+      );
+
+      setLoadingStep(
+        "Analyzing customer emotions..."
+      );
+
+      const response = await API.post(
+
+        "/analyze-amazon",
+
+        {
+          url: amazonUrl
+        },
+
+        {
+          headers: {
+
+            Authorization:
+              `Bearer ${token}`
+          }
+        }
+      );
+
+      const analysisId =
+        response.data.analysis._id;
+
+      setLoadingStep(
+        "Preparing analytics dashboard..."
+      );
+
+      await new Promise(
+
+        resolve => setTimeout(
+          resolve,
+          700
+        )
+      );
+
+      navigate(
+        `/dashboard/${analysisId}`
+      );
+
+    } catch (error: any) {
+
+      setError(
+
+        error.response?.data?.detail ||
+
+        error.response?.data?.error ||
+
+        "Amazon analysis failed"
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
   return (
 
     <div className="min-h-screen bg-black text-white">
@@ -188,6 +273,29 @@ function AnalyzePage() {
             YouTube Analysis
 
           </button>
+          <button
+
+              onClick={() => {
+
+                setActiveTab("amazon");
+
+                setError("");
+
+                setTextResult(null);
+              }}
+
+              className={`w-full sm:w-auto px-6 py-3 rounded-xl font-semibold transition ${
+                activeTab === "amazon"
+
+                  ? "bg-white text-black"
+
+                  : "bg-[#111111] border border-gray-700"
+              }`}
+            >
+
+              Amazon Analysis
+
+            </button>
 
           <button
                 onClick={() => {
@@ -333,6 +441,94 @@ function AnalyzePage() {
                 </div>
         )}
 
+        {/* AMAZON */}
+
+          {activeTab === "amazon" && (
+
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8">
+
+              <h2 className="text-3xl font-semibold mb-6">
+
+                Analyze Amazon Reviews
+
+              </h2>
+
+              <input
+                type="text"
+
+                placeholder="Paste Amazon Product URL..."
+
+                value={amazonUrl}
+
+                onChange={(e) =>
+
+                  setAmazonUrl(
+                    e.target.value
+                  )
+                }
+
+                className="w-full bg-black border border-gray-700 rounded-xl px-5 py-4 text-white outline-none focus:border-white mb-6"
+              />
+
+              {!loading && (
+
+                <button
+
+                  onClick={handleAmazonAnalysis}
+
+                  className="w-full bg-white text-black py-4 rounded-xl font-semibold hover:bg-gray-200 transition"
+                >
+
+                  Analyze Amazon Product
+
+                </button>
+              )}
+
+              {loading && (
+
+                <div className="mt-8 bg-black border border-gray-700 rounded-2xl p-6">
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className="w-10 h-10 border-4 border-gray-700 border-t-white rounded-full animate-spin">
+
+                    </div>
+
+                    <h3 className="text-xl font-semibold">
+
+                      AI Analysis In Progress
+
+                    </h3>
+
+                  </div>
+
+                  <div className="space-y-4">
+
+                    <div className="bg-[#111111] border border-gray-800 rounded-xl p-4">
+
+                      <p className="text-gray-300">
+
+                        {loadingStep}
+
+                      </p>
+
+                    </div>
+
+                    <div className="w-full bg-[#111111] rounded-full h-3 overflow-hidden">
+
+                      <div className="bg-white h-full animate-[pulse_1.5s_ease-in-out_infinite] w-3/4 rounded-full">
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+          )}
         {/* TEXT */}
 
         {activeTab === "text" && (

@@ -7,8 +7,8 @@ for aiservices :-
     source venv\Scripts\activate
 and if used previously:-source "/d/final year project/made_by_me/venv/Scripts/activate"
 
-and then:-
- run uvicorn main:app --reload
+and then run:-
+   uvicorn main:app --reload
 and go to :- http://127.0.0.1:8000/docs
 
 
